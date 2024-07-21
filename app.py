@@ -11,8 +11,9 @@ api_key = os.getenv("API_KEY")
 app = Flask(__name__)
 openai.api_key = api_key  # Replace with your OpenAI API key
 
-# Path to your folder containing plaintext documents
-DOCUMENTS_FOLDER = r'C:\Users\scien\ADHD Assist\documents'
+# Dynamically find the path of the folder that the app is in and then the documents folder inside it
+APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
+DOCUMENTS_FOLDER = os.path.join(APP_FOLDER, 'documents')
 
 def load_documents():
     documents = {}
