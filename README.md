@@ -48,4 +48,4 @@ Before using Memory Assist, you need to configure your API key.
 To start the application, run:
 
 ```bash
-npm start
+python app.py
