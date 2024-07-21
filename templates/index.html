@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD Assist</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Memory Search</h1>
+    <form id="queryForm">
+        <input type="text" id="queryInput" name="query" placeholder="Forgetting Something?">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="responseContainer"></div>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var query = document.getElementById('queryInput').value;
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ 'query': query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('responseContainer').innerText = data.response;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+#queryForm {
+    margin-bottom: 20px;
+}
+
+#queryInput {
+    width: 300px;
+    padding: 8px;
+}
+
+#responseContainer {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
