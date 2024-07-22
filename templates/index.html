@@ -13,6 +13,11 @@
         <button type="submit">Submit</button>
     </form>
     <div id="responseContainer"></div>
+    
+    <h2>Live Transcription</h2>
+    <button id="startTranscription">Start Transcription</button>
+    <button id="stopTranscription">Stop Transcription</button>
+    <div id="transcriptionContainer"></div>
 
     <script>
         document.getElementById('queryForm').addEventListener('submit', function(event) {
@@ -30,6 +35,46 @@
                 document.getElementById('responseContainer').innerText = data.response;
             });
         });
+
+        const startButton = document.getElementById('startTranscription');
+        const stopButton = document.getElementById('stopTranscription');
+        const transcriptionContainer = document.getElementById('transcriptionContainer');
+        let recognition;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        } else {
+            alert('Speech recognition not supported in this browser.');
+        }
+
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                transcriptionContainer.innerHTML = '<strong>Final:</strong> ' + finalTranscript + '<br><strong>Temp:</strong> ' + interimTranscript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error(event.error);
+            };
+
+            startButton.addEventListener('click', () => recognition.start());
+            stopButton.addEventListener('click', () => recognition.stop());
+        }
     </script>
 </body>
 </html>

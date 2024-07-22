@@ -22,7 +22,7 @@ Memory Assist is a tool that helps you manage and recall important information e
 2. Install the necessary dependencies:
 
     ```bash
-    npm install
+    pip install
     ```
 
 ## Configuration
