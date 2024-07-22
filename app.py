@@ -39,18 +39,10 @@ def load_documents():
 
 def extract_summary(text):
     """
-    Extract summary from the given text using GPT.
+    Extract the first few lines of the given text as a summary.
     """
-    prompt = f"Extract a short summary for the following text:\n\n{text}"
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": ""},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=100
-    )
-    summary = response.choices[0].message['content'].strip()
+    lines = text.split('\n')
+    summary = '\n'.join(lines[:5])  # Assuming the first 5 lines are the summary
     return summary
 
 # Load documents and their summaries at startup
