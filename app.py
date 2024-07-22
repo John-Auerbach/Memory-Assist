@@ -73,12 +73,12 @@ def query_gpt(prompt, context):
     Query the GPT model with a user prompt and context from documents.
     """
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "Answer the question given the following context"},
             {"role": "user", "content": f"{context}\n\nUser question: {prompt}"}
         ],
-        max_tokens=150
+        max_tokens=200
     )
     return response.choices[0].message['content'].strip()
 
@@ -138,16 +138,16 @@ def open_browser():
 
 def generate_summary(transcription):
     """
-    Generate a summary for the given transcription using GPT.
+    Generate a short summary for the given transcription using GPT.
     """
-    prompt = f"Provide a short summary for the following text:\n\n{transcription}"
+    prompt = f"Briefly summarize the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=100
     )
     summary = response.choices[0].message['content'].strip()
     return summary
@@ -158,7 +158,7 @@ def generate_keywords(transcription):
     """
     prompt = f"Extract a list of comma-separated relevant keywords from the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt}
