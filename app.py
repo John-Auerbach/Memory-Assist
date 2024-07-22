@@ -7,6 +7,9 @@ import os
 import webbrowser
 from threading import Timer
 from datetime import datetime
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -25,21 +28,60 @@ def load_documents():
     Load all .txt documents from the documents folder and store their contents in a dictionary.
     """
     documents = {}
+    summaries = {}
     for filename in os.listdir(DOCUMENTS_FOLDER):
         if filename.endswith('.txt'):
             with open(os.path.join(DOCUMENTS_FOLDER, filename), 'r', encoding='utf-8') as file:
-                documents[filename] = file.read()
-    return documents
+                content = file.read()
+                documents[filename] = content
+                summaries[filename] = extract_summary(content)
+    return documents, summaries
 
-# Load documents at startup
-documents = load_documents()
+def extract_summary(text):
+    """
+    Extract summary from the given text using GPT.
+    """
+    prompt = f"Extract a short summary for the following text:\n\n{text}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": ""},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=100
+    )
+    summary = response.choices[0].message['content'].strip()
+    return summary
+
+# Load documents and their summaries at startup
+documents, summaries = load_documents()
+
+def vectorize_documents(summaries):
+    """
+    Vectorize the summaries of the documents.
+    """
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform(summaries.values())
+    return vectorizer, vectors
+
+vectorizer, vectors = vectorize_documents(summaries)
+
+def search_documents(query):
+    """
+    Search documents based on a query and return ranked results.
+    """
+    query_vector = vectorizer.transform([query])
+    similarities = cosine_similarity(query_vector, vectors).flatten()
+    ranked_indices = np.argsort(similarities)[::-1]
+    ranked_files = [list(summaries.keys())[i] for i in ranked_indices]
+    return ranked_files, similarities[ranked_indices]
 
 def query_gpt(prompt, context):
     """
     Query the GPT model with a user prompt and context from documents.
     """
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # Updated model
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "Answer the question given the following context"},
             {"role": "user", "content": f"{context}\n\nUser question: {prompt}"}
@@ -62,10 +104,31 @@ def query():
     """
     user_query = request.form.get('query')
     
-    # Combine all document contents to provide context
-    combined_documents = "\n\n".join(documents.values())
+    # Log user's search query
+    print(f"User's search query: {user_query}")
     
-    response_text = query_gpt(user_query, combined_documents)
+    # Search documents based on the user's query
+    ranked_files, similarities = search_documents(user_query)
+    
+    # Log the ranked files and their similarities
+    print(f"Ranked files: {ranked_files}")
+    print(f"Similarities: {similarities}")
+    
+    # Read the top N most relevant files for context
+    top_n = 5
+    relevant_context = ""
+    for file in ranked_files[:top_n]:
+        relevant_context += f"Summary of {file}:\n{summaries[file]}\n\n"
+    
+    # Log the relevant context
+    print(f"Relevant context for GPT:\n{relevant_context}")
+    
+    # Query GPT with the relevant context
+    response_text = query_gpt(user_query, relevant_context)
+    
+    # Log the GPT response
+    print(f"GPT response: {response_text}")
+    
     return jsonify({'response': response_text})
 
 def open_browser():
@@ -87,7 +150,7 @@ def generate_summary(transcription):
     """
     prompt = f"Provide a short summary for the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # Updated model
+        model="gpt-4",
         messages=[
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt}
@@ -103,7 +166,7 @@ def generate_keywords(transcription):
     """
     prompt = f"Extract a list of comma-separated relevant keywords from the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # Updated model
+        model="gpt-4",
         messages=[
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt}
@@ -140,6 +203,14 @@ def save_transcription():
             file.write(f"Keywords: {keywords}\n")
             file.write(f"Summary: {summary}\n\n")
             file.write(transcription)
+        
+        # Update documents and summaries
+        documents[filename] = transcription
+        summaries[filename] = summary
+        vectorizer, vectors = vectorize_documents(summaries)
+        
+        # Log the save operation
+        print(f"Transcription saved as {filename}")
         
         return jsonify({'message': f'Transcription saved as {filename}'})
     
