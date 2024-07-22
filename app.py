@@ -8,17 +8,22 @@ import webbrowser
 from threading import Timer
 from datetime import datetime
 
+# Load environment variables from a .env file
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
+# Initialize the Flask app
 app = Flask(__name__)
-openai.api_key = api_key  # Replace with your OpenAI API key
+openai.api_key = api_key  # Set the OpenAI API key
 
 # Dynamically find the path of the folder that the app is in and then the documents folder inside it
 APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
 DOCUMENTS_FOLDER = os.path.join(APP_FOLDER, 'documents')
 
 def load_documents():
+    """
+    Load all .txt documents from the documents folder and store their contents in a dictionary.
+    """
     documents = {}
     for filename in os.listdir(DOCUMENTS_FOLDER):
         if filename.endswith('.txt'):
@@ -26,9 +31,13 @@ def load_documents():
                 documents[filename] = file.read()
     return documents
 
+# Load documents at startup
 documents = load_documents()
 
 def query_gpt(prompt, context):
+    """
+    Query the GPT model with a user prompt and context from documents.
+    """
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",  # Updated model
         messages=[
@@ -41,10 +50,16 @@ def query_gpt(prompt, context):
 
 @app.route('/')
 def index():
+    """
+    Render the index.html template at the root URL.
+    """
     return render_template('index.html')
 
 @app.route('/query', methods=['POST'])
 def query():
+    """
+    Handle POST requests to the /query endpoint, querying GPT with the user's input.
+    """
     user_query = request.form.get('query')
     
     # Combine all document contents to provide context
@@ -54,6 +69,9 @@ def query():
     return jsonify({'response': response_text})
 
 def open_browser():
+    """
+    Open the default web browser to the app's URL.
+    """
     url = "http://127.0.0.1:5000/"
     if platform.system() == "Windows":
         chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe %s"
@@ -64,6 +82,9 @@ def open_browser():
         subprocess.run(["google-chrome", url])
 
 def generate_summary(transcription):
+    """
+    Generate a summary for the given transcription using GPT.
+    """
     prompt = f"Provide a short summary for the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",  # Updated model
@@ -77,6 +98,9 @@ def generate_summary(transcription):
     return summary
 
 def generate_keywords(transcription):
+    """
+    Extract relevant keywords from the given transcription using GPT.
+    """
     prompt = f"Extract a list of comma-separated relevant keywords from the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",  # Updated model
@@ -91,19 +115,25 @@ def generate_keywords(transcription):
 
 @app.route('/save_transcription', methods=['POST'])
 def save_transcription():
+    """
+    Save a transcription with a summary and keywords, and store it in the documents folder.
+    """
     data = request.get_json()
     transcription = data.get('transcription', '')
     
     if transcription:
+        # Create a timestamped filename for the transcription
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         date = datetime.now().strftime('%Y-%m-%d')
         time = datetime.now().strftime('%H:%M:%S')
         filename = f'transcription_{timestamp}.txt'
         file_path = os.path.join(DOCUMENTS_FOLDER, filename)
         
+        # Generate summary and keywords
         summary = generate_summary(transcription)
         keywords = generate_keywords(transcription)
         
+        # Save the transcription, summary, and keywords to a file
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(f"Date: {date}\n")
             file.write(f"Time: {time}\n")
@@ -116,5 +146,6 @@ def save_transcription():
     return jsonify({'message': 'No transcription to save'}), 400
 
 if __name__ == '__main__':
+    # Open the browser after a short delay
     Timer(1, open_browser).start()
     app.run(debug=False)

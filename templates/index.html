@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Define the character set and viewport for the webpage -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title of the webpage -->
     <title>Memory Assist</title>
+    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Main heading of the webpage -->
     <h1>Memory Search</h1>
+    <!-- Form for submitting queries to the server -->
     <form id="queryForm">
         <input type="text" id="queryInput" name="query" placeholder="Forgetting Something?">
         <button type="submit">Submit</button>
     </form>
+    <!-- Container to display the response from the server -->
     <div id="responseContainer"></div>
     
+    <!-- Section for live transcription feature -->
     <h2>Live Transcription</h2>
     <button id="startTranscription">Start Transcription</button>
     <button id="stopTranscription">Stop Transcription</button>
     <button id="clearTranscription">Clear Transcription</button>
+    <!-- Container to display the transcription text -->
     <div id="transcriptionContainer"></div>
 
     <script>
+        // Add event listener to handle form submission
         document.getElementById('queryForm').addEventListener('submit', function(event) {
             event.preventDefault();
             var query = document.getElementById('queryInput').value;
@@ -37,6 +46,7 @@
             });
         });
 
+        // Get references to transcription buttons and container
         const startButton = document.getElementById('startTranscription');
         const stopButton = document.getElementById('stopTranscription');
         const clearButton = document.getElementById('clearTranscription');
@@ -44,6 +54,7 @@
         let recognition;
         let accumulatedFinalTranscript = '';
 
+        // Check for speech recognition support in the browser
         if ('webkitSpeechRecognition' in window) {
             recognition = new webkitSpeechRecognition();
         } else if ('SpeechRecognition' in window) {
@@ -53,14 +64,17 @@
         }
 
         if (recognition) {
+            // Configure the speech recognition settings
             recognition.continuous = true;
             recognition.interimResults = true;
             recognition.lang = 'en-US';
 
+            // Handle the result event from the speech recognition
             recognition.onresult = function(event) {
                 let interimTranscript = '';
                 let finalTranscript = '';
 
+                // Process each result from the speech recognition
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript + ' ';
@@ -69,14 +83,17 @@
                     }
                 }
 
+                // Accumulate the final transcript and display both interim and final transcripts
                 accumulatedFinalTranscript += finalTranscript;
                 transcriptionContainer.innerHTML = '<strong>Temp:</strong> ' + interimTranscript + '<br><strong>Final:</strong> ' + accumulatedFinalTranscript;
             };
 
+            // Handle errors from the speech recognition
             recognition.onerror = function(event) {
                 console.error(event.error);
             };
 
+            // Add event listeners for the transcription control buttons
             startButton.addEventListener('click', () => recognition.start());
             stopButton.addEventListener('click', () => {
                 recognition.stop();
