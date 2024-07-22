@@ -4,6 +4,8 @@ import openai
 import os
 import webbrowser
 from threading import Timer
+import subprocess
+import platform
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -51,7 +53,14 @@ def query():
     return jsonify({'response': response_text})
 
 def open_browser():
-    webbrowser.open_new("http://127.0.0.1:5000/")
+    url = "http://127.0.0.1:5000/"
+    if platform.system() == "Windows":
+        chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe %s"
+        webbrowser.get(chrome_path).open(url)
+    elif platform.system() == "Darwin":  # macOS
+        subprocess.run(["open", "-a", "Google Chrome", url])
+    else:  # Linux
+        subprocess.run(["google-chrome", url])
 
 if __name__ == '__main__':
     Timer(1, open_browser).start()
