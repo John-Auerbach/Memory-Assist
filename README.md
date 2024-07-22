@@ -15,7 +15,7 @@ Memory Assist is a tool that helps you manage and recall important information e
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/memory-assist.git
+    git clone https://github.com/John-Auerbach/Memory-Assist.git
     cd memory-assist
     ```
 
