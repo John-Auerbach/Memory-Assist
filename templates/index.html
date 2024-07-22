@@ -76,7 +76,27 @@
             };
 
             startButton.addEventListener('click', () => recognition.start());
-            stopButton.addEventListener('click', () => recognition.stop());
+            stopButton.addEventListener('click', () => {
+                recognition.stop();
+                if (accumulatedFinalTranscript.trim() !== '') {
+                    if (confirm('Would you like to save the transcription to a file?')) {
+                        fetch('/save_transcription', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ transcription: accumulatedFinalTranscript })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(data.message);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    }
+                }
+            });
         }
     </script>
 </body>

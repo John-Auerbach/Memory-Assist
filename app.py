@@ -1,11 +1,14 @@
+import platform
+import subprocess
+
+# existing imports
 from flask import Flask, request, render_template, jsonify
 from dotenv import load_dotenv
 import openai
 import os
 import webbrowser
 from threading import Timer
-import subprocess
-import platform
+from datetime import datetime
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -61,6 +64,23 @@ def open_browser():
         subprocess.run(["open", "-a", "Google Chrome", url])
     else:  # Linux
         subprocess.run(["google-chrome", url])
+
+@app.route('/save_transcription', methods=['POST'])
+def save_transcription():
+    data = request.get_json()
+    transcription = data.get('transcription', '')
+    
+    if transcription:
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'transcription_{timestamp}.txt'
+        file_path = os.path.join(DOCUMENTS_FOLDER, filename)
+        
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(transcription)
+        
+        return jsonify({'message': f'Transcription saved as {filename}'})
+    
+    return jsonify({'message': 'No transcription to save'}), 400
 
 if __name__ == '__main__':
     Timer(1, open_browser).start()
