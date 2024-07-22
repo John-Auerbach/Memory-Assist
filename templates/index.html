@@ -17,6 +17,7 @@
     <h2>Live Transcription</h2>
     <button id="startTranscription">Start Transcription</button>
     <button id="stopTranscription">Stop Transcription</button>
+    <button id="clearTranscription">Clear Transcription</button>
     <div id="transcriptionContainer"></div>
 
     <script>
@@ -38,6 +39,7 @@
 
         const startButton = document.getElementById('startTranscription');
         const stopButton = document.getElementById('stopTranscription');
+        const clearButton = document.getElementById('clearTranscription');
         const transcriptionContainer = document.getElementById('transcriptionContainer');
         let recognition;
         let accumulatedFinalTranscript = '';
@@ -96,6 +98,10 @@
                         });
                     }
                 }
+            });
+            clearButton.addEventListener('click', () => {
+                accumulatedFinalTranscript = '';
+                transcriptionContainer.innerHTML = '<strong>Temp:</strong> <br><strong>Final:</strong> ';
             });
         }
     </script>

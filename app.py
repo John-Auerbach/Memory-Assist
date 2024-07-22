@@ -1,7 +1,5 @@
 import platform
 import subprocess
-
-# existing imports
 from flask import Flask, request, render_template, jsonify
 from dotenv import load_dotenv
 import openai
@@ -65,6 +63,32 @@ def open_browser():
     else:  # Linux
         subprocess.run(["google-chrome", url])
 
+def generate_summary(transcription):
+    prompt = f"Provide a short summary for the following text:\n\n{transcription}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",  # Updated model
+        messages=[
+            {"role": "system", "content": ""},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=150
+    )
+    summary = response.choices[0].message['content'].strip()
+    return summary
+
+def generate_keywords(transcription):
+    prompt = f"Extract a list of comma-separated relevant keywords from the following text:\n\n{transcription}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",  # Updated model
+        messages=[
+            {"role": "system", "content": ""},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=50
+    )
+    keywords = response.choices[0].message['content'].strip()
+    return keywords
+
 @app.route('/save_transcription', methods=['POST'])
 def save_transcription():
     data = request.get_json()
@@ -72,10 +96,19 @@ def save_transcription():
     
     if transcription:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        date = datetime.now().strftime('%Y-%m-%d')
+        time = datetime.now().strftime('%H:%M:%S')
         filename = f'transcription_{timestamp}.txt'
         file_path = os.path.join(DOCUMENTS_FOLDER, filename)
         
+        summary = generate_summary(transcription)
+        keywords = generate_keywords(transcription)
+        
         with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(f"Date: {date}\n")
+            file.write(f"Time: {time}\n")
+            file.write(f"Keywords: {keywords}\n")
+            file.write(f"Summary: {summary}\n\n")
             file.write(transcription)
         
         return jsonify({'message': f'Transcription saved as {filename}'})

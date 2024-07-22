@@ -1,0 +1,6 @@
+Date: 2024-07-22
+Time: 02:58:36
+Keywords: test, audio transcription, date time summary, keywords, process
+Summary: This text is a test file for evaluating the audio transcription process, aiming to determine if it can provide a date, time summary, and keywords. The author is checking the functionality of the features involved.
+
+hello hello testing testing 1 2 3  the purpose of this is to serve as a test file for the audio transcription process  I would like to see if this file can give a date time summary and keywords  we will see if this actually works 
