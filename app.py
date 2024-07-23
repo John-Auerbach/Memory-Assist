@@ -10,6 +10,7 @@ from datetime import datetime
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import textwrap
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -97,7 +98,7 @@ def query():
     user_query = request.form.get('query')
     
     # Log user's search query
-    print(f"\nUser's search query: {user_query}")
+    print(f"\nUser query: {user_query}")
     
     # Search documents based on the user's query
     ranked_files, similarities = search_documents(user_query)
@@ -127,11 +128,13 @@ def query():
         relevant_summaries += f"   {file}:\n"
         relevant_summaries += f"   ├── {date}\n"
         relevant_summaries += f"   ├── {time}\n"
-        relevant_summaries += f"   ├── {keywords}\n"
-        relevant_summaries += f"   └── {summary_content}\n"
+        wrapped_keywords = textwrap.fill(keywords, width=70, subsequent_indent='   |   ')
+        relevant_summaries += f"   ├── {wrapped_keywords}\n"
+        wrapped_summary_content = textwrap.fill(summary_content, width=70, subsequent_indent='       ')
+        relevant_summaries += f"   └── {wrapped_summary_content}\n\n"
     
     # Log the relevant summaries
-    print("\nRelevant summaries for GPT:\n")
+    print("\nRelevant file summaries:\n")
     for line in relevant_summaries.split('\n'):
         print(f"{line}")
     
@@ -142,8 +145,6 @@ def query():
     print(f"GPT response: {response_text}")
     
     return jsonify({'response': response_text})
-
-
 
 def open_browser():
     """
