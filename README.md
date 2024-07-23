@@ -21,7 +21,7 @@ Memory Assist allows you to record audio transcriptions of important information
 
 ### Semantic Search Engine
 
-Memory Assist uses a semantic search engine to find relevant information through TF-IDF vectorization. The search engine operates by vectorizing all saved transcription documents. When a query is entered, the semantic search engine also vectorizes the user query, then calculates the cosine similarity between the query vector and the document vectors. The documents are then ranked based on their relevance to the query, and the most relevant documents are selected to provide context for answering the question. This context is then sent to the GPT API, along with the original user query, and the generated response is displayed to the user.
+Memory Assist uses a semantic search engine to find relevant information through TF-IDF vectorization. The search engine begins by vectorizing all saved transcription documents. When a query is entered, the program also vectorizes the user query, then calculates the cosine similarity between the query vector and the document vectors. This similarity is used to rank documents based on their relevance to the query, and the most relevant documents are selected to provide context for answering the question. This context is sent to the GPT API, along with the original user query, and the generated response is displayed to the user.
 
 ## Installation
 
