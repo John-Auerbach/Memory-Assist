@@ -1,6 +1,6 @@
 # Memory Assist
 
-Forgetting something? Memory Assist is a tool that helps you manage and recall important information effectively - from lectures, meetings, and even daily life. While this program was initially intended for individuals who experience frequent forgetfulness due to conditions like ADHD, alzheimers, and amnesia, Memory Assist can be instrumental in helping students and professionals remember important tasks, due dates, and homework assignments.
+Forgetting something? Memory Assist is a tool that helps you manage and recall important information effectively - from lectures to meetings, and even daily life. While this program was initially intended for individuals who experience frequent forgetfulness due to conditions like ADHD, alzheimers, and amnesia, Memory Assist can be instrumental in helping students and professionals remember important tasks, due dates, and homework assignments.
 
 ## Table of Contents
 
