@@ -15,6 +15,7 @@
     <!-- Form for submitting queries to the server -->
     <form id="queryForm">
         <input type="text" id="queryInput" name="query" placeholder="Forgetting Something?">
+        <button type="button" id="recordQuery">🎤</button>
         <button type="submit">Submit</button>
     </form>
     <!-- Container to display the response from the server -->
@@ -51,8 +52,10 @@
         const stopButton = document.getElementById('stopTranscription');
         const clearButton = document.getElementById('clearTranscription');
         const transcriptionContainer = document.getElementById('transcriptionContainer');
+        const recordQueryButton = document.getElementById('recordQuery');
         let recognition;
         let accumulatedFinalTranscript = '';
+        let timeout;
 
         // Check for speech recognition support in the browser
         if ('webkitSpeechRecognition' in window) {
@@ -119,6 +122,30 @@
             clearButton.addEventListener('click', () => {
                 accumulatedFinalTranscript = '';
                 transcriptionContainer.innerHTML = '<strong>Temp:</strong> <br><strong>Final:</strong> ';
+            });
+
+            // Add event listener for the query recording button
+            recordQueryButton.addEventListener('click', () => {
+                recognition.start();
+                recognition.onresult = function(event) {
+                    let queryTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            queryTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    document.getElementById('queryInput').value = queryTranscript;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        recognition.stop();
+                    }, 1000);
+                };
+                recognition.onspeechend = () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        recognition.stop();
+                    }, 1000);
+                };
             });
         }
     </script>
