@@ -48,15 +48,15 @@ def extract_summary(text):
 # Load documents and their summaries at startup
 documents, summaries = load_documents()
 
-def vectorize_documents(summaries):
+def vectorize_documents(documents):
     """
-    Vectorize the summaries of the documents.
+    Vectorize the contents of the documents.
     """
     vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(summaries.values())
+    vectors = vectorizer.fit_transform(documents.values())
     return vectorizer, vectors
 
-vectorizer, vectors = vectorize_documents(summaries)
+vectorizer, vectors = vectorize_documents(documents)
 
 def search_documents(query):
     """
@@ -65,7 +65,7 @@ def search_documents(query):
     query_vector = vectorizer.transform([query])
     similarities = cosine_similarity(query_vector, vectors).flatten()
     ranked_indices = np.argsort(similarities)[::-1]
-    ranked_files = [list(summaries.keys())[i] for i in ranked_indices]
+    ranked_files = [list(documents.keys())[i] for i in ranked_indices]
     return ranked_files, similarities[ranked_indices]
 
 def query_gpt(prompt, context):
@@ -97,23 +97,43 @@ def query():
     user_query = request.form.get('query')
     
     # Log user's search query
-    print(f"User's search query: {user_query}")
+    print(f"\nUser's search query: {user_query}")
     
     # Search documents based on the user's query
     ranked_files, similarities = search_documents(user_query)
     
     # Log the ranked files and their similarities
-    print(f"Ranked files: {ranked_files}")
-    print(f"Similarities: {similarities}")
+    print("\nRanked files and their similarities:")
+    for i, file in enumerate(ranked_files[:5]):
+        branch = "└──" if i == 4 else "├──"
+        print(f"{branch} {file} (Similarity: {similarities[i]:.4f})")
     
     # Read the top N most relevant files for context
     top_n = 5
     relevant_context = ""
     for file in ranked_files[:top_n]:
-        relevant_context += f"Summary of {file}:\n{summaries[file]}\n\n"
+        relevant_context += f"Contents of {file}:\n{documents[file]}\n\n"
     
-    # Log the relevant context
-    print(f"Relevant context for GPT:\n{relevant_context}")
+    # Log only the summaries (first 5 lines) of the relevant context
+    relevant_summaries = ""
+    for file in ranked_files[:top_n]:
+        summary = summaries[file]
+        lines = summary.split('\n')
+        date = lines[0]
+        time = lines[1]
+        keywords = lines[2]
+        summary_content = '\n'.join(lines[3:])
+        
+        relevant_summaries += f"   {file}:\n"
+        relevant_summaries += f"   ├── {date}\n"
+        relevant_summaries += f"   ├── {time}\n"
+        relevant_summaries += f"   ├── {keywords}\n"
+        relevant_summaries += f"   └── {summary_content}\n"
+    
+    # Log the relevant summaries
+    print("\nRelevant summaries for GPT:\n")
+    for line in relevant_summaries.split('\n'):
+        print(f"{line}")
     
     # Query GPT with the relevant context
     response_text = query_gpt(user_query, relevant_context)
@@ -122,6 +142,8 @@ def query():
     print(f"GPT response: {response_text}")
     
     return jsonify({'response': response_text})
+
+
 
 def open_browser():
     """
@@ -142,7 +164,7 @@ def generate_summary(transcription):
     """
     prompt = f"Briefly summarize the following text:\n\n{transcription}"
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt}
@@ -199,7 +221,7 @@ def save_transcription():
         # Update documents and summaries
         documents[filename] = transcription
         summaries[filename] = summary
-        vectorizer, vectors = vectorize_documents(summaries)
+        vectorizer, vectors = vectorize_documents(documents)
         
         # Log the save operation
         print(f"Transcription saved as {filename}")
